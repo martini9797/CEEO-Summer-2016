@@ -15,11 +15,14 @@
 			<br>
 			<button id="resetbox" onclick="resetCanvas()">Reset Worksheet</button>
 			<br><br><br>
-			<button id="namebox" onclick="startDrawFunc()">New Name Box</button>
+			<button id="namebox" onclick="startDrawFunc()" onmouseover="displaytext('name')" onmouseleave="displaytext()">New Name Box</button>
 			<br><br>
-			<button id="answerbox" onclick="startDrawFunc()">New Answer Box</button>
+			<button id="answerbox" onclick="startDrawFunc()" onmouseover="displaytext('answer')" onmouseleave="displaytext()">New Answer Box</button>
 			<br><br>
-			<button id="diagrambox" onclick="startDrawFunc()">New Diagram Box</button>
+			<button id="diagrambox" onclick="startDrawFunc()" onmouseover="displaytext('diagram')" onmouseleave="displaytext()">New Diagram Box</button>
+			<br><br>
+			<p id="par">Worksheet Editor Verison 5.01 
+			Load worksheet in jpeg/png format to begin editting.</p>
 		</div>
 	</div>
 </body>
@@ -28,6 +31,7 @@
 
 var canvas = document.getElementById('imageCanvas');
 var image = document.getElementById('LoadImage');
+var par = document.getElementById('par');
 var ctx = canvas.getContext('2d');
 
 var newWorksheet = new Image(), newDataURL;
@@ -76,8 +80,8 @@ function getCoor(event){
 
 	var rect = canvas.getBoundingClientRect();
 	var xcoor, ycoor, offsetX = rect.left, offsetY = rect.top;
-	xcoor = Math.floor(event.pageX - offsetX);
-	ycoor = Math.floor(event.pageY - offsetY);
+	xcoor = Math.floor(event.pageX - offsetX - window.pageXOffset);
+	ycoor = Math.floor(event.pageY - offsetY - window.pageYOffset);
 
 	return {
 		x: xcoor,
@@ -133,6 +137,22 @@ function resetCanvas(){
 	newWorksheet.src = image.src;
 	ctx.clearRect(0,0,canvas.width,canvas.height);
 	ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
+}
+
+function displaytext(button){
+	switch (button){
+		case "name":
+			par.innerHTML = "Click to create a box that defines where the name goes...";
+			break;
+		case "answer":
+			par.innerHTML = "Click to create a box that defines where an answer would be written...";
+			break;
+		case "diagram":
+			par.innerHTML = "Click to create a box that defines where a diagram would be drawn...";
+			break;
+		default:
+			par.innerHTML = "";
+	}
 }
 
 </script>
