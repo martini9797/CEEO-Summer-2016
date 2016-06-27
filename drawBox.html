@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Drawing Box Tester</title>
+</head>
+
+<body>
+	<div align="center">
+		<canvas id="myCanvas" width="500" height="500" style="border:1pt dashed #0000ff" ></canvas>
+		<p id="demo"></p>
+	</div>
+</body>
+
+<script language="JavaScript">
+
+var canvas = document.getElementById('myCanvas');
+var par = document.getElementById('demo');
+var ctx = canvas.getContext('2d');
+
+	canvas.addEventListener('click', function(event){
+		canvas.addEventListener('mousemove', function(){action(event);},false);
+	},false);
+
+function action(event){
+	canvas.style.cursor = "crosshair";
+	var rect = canvas.getBoundingClientRect();
+	var x, y, offsetX = rect.left, offsetY = rect.top;
+
+	x = Math.floor(event.pageX - offsetX);
+	y = Math.floor(event.pageY - offsetY);
+	
+	par.innerHTML = "You are at: " + x + " , " + y + "\nand offsetX is: " + offsetX + " and offsetY is: " + offsetY;
+}
+
+
+</script>
+</html>

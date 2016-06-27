@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Canvas Editer Version 3</title>
+</head>
+
+<body>
+	<div style="display:flex">
+		<div align="center">
+			<!--<p> Worksheet File: </p>-->
+			<canvas id="imageCanvas" width="750" height="970" style="border:1pt dashed #ff0000" onclick="drawBox(event)"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
+			<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" > 
+		</div>
+
+		<div style="margin:5pt" align="center">
+			<button id="drawbox" >Draw Box</button><!--onclick="drawBox(event)"-->
+		</div>
+	</div>
+</body>
+
+<script language="JavaScript">
+
+var image = document.getElementById('LoadImage');
+var canvas = document.getElementById('imageCanvas');
+var ctx = canvas.getContext('2d');
+var bxButton = document.getElementById('drawbox');
+
+function resizeImg(){
+	var scaleFactor = 1;
+	// if one of the image dimensions is greater than the size of the canvas
+	if ((image.width > canvas.width) || (image.height > canvas.height)) {
+		// determine the smaller ratio between side lengths in pixels:
+		// if width ratio is smaller
+		if ((canvas.width / image.width) < (canvas.height / image.height)){
+			scaleFactor = canvas.width / image.width;
+			image.width = image.width*scaleFactor;
+			image.style.height = "auto";
+		}
+		// if height ratio is smaller
+		if ((canvas.height / image.height) < (canvas.width / image.width)){
+			scaleFactor = canvas.height / image.height;
+			image.height = image.height*scaleFactor;
+			image.style.width = "auto";
+		}
+	}
+	//alert("image variable: " + image + "\nimage width: " + image.width + " image height: " + image.height + "\ncanvas variable: " + canvas + "\ncanvas width: " + canvas.width + " canvas height: " + canvas.height);
+	ctx.drawImage(image,0,0,image.width,image.height);
+	image.style.display = "none";
+}
+
+
+function drawBox(event){
+	var rect = canvas.getBoundingClientRect();
+	var x = event.Clientx - rect.left;
+	var y = event.Clienty - rect.top;
+	alert("You just clicked on: " + x + ", " + y);
+}
+
+var started = false;
+function ev_mousemove(event){
+	var x, y;
+
+	if(event.layerX || event.layerX == 0){
+		x = event.layerX;
+		y = event.layerY;
+	} else if (event.offsetX || event.offsetX == 0){
+		x = event.offsetX;
+		y = event.offsetY;
+	}
+
+	if(!started){
+		ctx.beginPath();
+		ctx.moveTo(x,y);
+		started = true;
+	} else {
+		ctx.lineTo(x,y);
+		ctx.stroke();
+	}
+}
+
+</script>
+</html>
+

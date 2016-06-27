@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Test Page 2</title>
+</head>
+
+<body>
+<h4> Select the worksheet to be prepared:</h4>
+
+<form id="file-form" action="handler.php" method="POST">
+	<input type="file" id="file" name="worksheet"/>
+	<button type="submit" id="upload-button"> Upload </button>
+</form>
+
+<script language="JavaScript">
+
+var form = document.getElementById('file-form');
+var fileSelect = document.getElementById('file');
+var uploadButton = document.getElementById('upload-button');
+
+form.onsubmit = function(event){ // when form "submits" 
+
+		event.preventDefault(); // prevent default action of webpage after submitting form
+
+		uploadButton.innerHTML = "Uploading..."; //change text inside button
+
+		var file = fileSelect.files[0]; //get the file that has been uploaded
+
+		alert(file);
+
+		var formData = new FormData(); // create new FormData object
+
+		formData.append('worksheet', file, file.name) // add the file to the formData object
+
+		var xhr = new XMLHttpRequest(); // new AJAX request
+
+		xhr.open('POST', 'handler.php', true); // open the server connection to be able to post, with which webpage and true to run in the background
+
+		xhr.onload = function(){
+			if (xhr.status === 200){
+				// file uploaded
+				uploadButton.innerHTML = 'Upload';
+			} else{
+				alert('An error occurred! File not uploaded!')
+			}
+		}
+
+		xhr.send(formData);
+
+		alert(formData);
+
+}
+
+
+function uploadFunc(){
+	var file = document.getElementById('file').files[0];
+	if (file){
+		alert("Name: " + file.name);
+	}
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Drawing Box Animation </title>
+</head>
+
+<body>
+	<div align="center">
+		<canvas id="myCanvas" width="500" height="200" style="border:1pt dashed #0000ff" ></canvas>
+		<br>
+		<p id="par">This is paragraph text!</p>
+	</div>
+</body>
+
+<script language="JavaScript">
+
+var canvas = document.getElementById('myCanvas');
+var ctx = canvas.getContext('2d');
+var par = document.getElementById('par');
+
+canvas.style.cursor = "crosshair";
+
+var drawing = false, e, startx, starty, endx, endy;
+
+var requestAnimationFrame = window.requestAnimationFrame ||
+							window.mozRequestAnimationFrame ||
+							window.webkitRequestAnimationFrame ||
+							window.msRequestAnimationFrame;
+
+canvas.addEventListener('click', function(event){
+	
+	if(!drawing){
+		drawing = true;
+		e = event;
+		drawBox();
+		var coor = getCoor(e);
+		startx = coor.x;
+		starty = coor.y;
+		par.innerHTML = "Coordinates are: " + startx + " , " + starty + "\nand the event is: " + e.which;
+	} else {
+		drawing = false;
+	}
+
+}, false);
+
+
+function getCoor(event){
+
+	var rect = canvas.getBoundingClientRect();
+	var xcoor, ycoor, offsetX = rect.left, offsetY = rect.top;
+	xcoor = Math.floor(event.pageX - offsetX);
+	ycoor = Math.floor(event.pageY - offsetY);
+
+	return {
+		x: xcoor,
+		y: ycoor
+	};
+
+}
+
+/*function drawBox(event){
+	if (drawing){
+		var coor = getCoor(event);
+		endx = coor.x;
+		endy = coor.y;
+		par.innerHTML = "Coordinates are: " + endx + " , " + endy;
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.rect(startx, starty, endx - startx, endy - starty);
+		ctx.strokeStyle = "#0000FF";
+		ctx.stroke();
+	}
+	requestAnimationFrame(function(){
+			drawBox(e);
+		});
+}
+
+drawBox(e);*/
+
+function drawBox(){
+	if (drawing){
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.beginPath();
+		ctx.rect(10,10,startx,starty);
+		ctx.strokeStyle = "#0000FF";
+		ctx.stroke();
+		ctx.closePath();
+		startx += 1;
+		starty += 1;
+	}
+	requestAnimationFrame(drawBox);
+}
+
+</script>
+</html>

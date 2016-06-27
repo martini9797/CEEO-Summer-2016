@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Test Page </title>
+</head>
+
+<body>
+<img src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet">
+<img id="image" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" border="1" onload="myfunction()">
+<!--<canvas id="workspace" width="200" height="100" style="border:1px solid #050505;"></canvas>-->
+
+<script language="JavaScript">
+
+function myfunction(){
+	var img = document.getElementById("image");
+		alert("image width: " + img.width + " image height: " + img.height);
+		img.width = img.width*.5;
+		img.style.height = "auto";
+		alert("image width: " + img.width + " image height: " + img.height);
+}
+
+/*var canvas = document.getElementById("workspace");
+var ctx = canvas.getContext("2d");
+ctx.beginPath();
+ctx.moveTo(20,20);
+ctx.lineTo(20,75);
+ctx.lineTo(70,75);
+ctx.strokeStyle = "#FF0000";
+ctx.stroke();*/
+
+
+
+</script>
+
+</body>
+</html>

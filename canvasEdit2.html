@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Canvas Editer Version 2</title>
+</head>
+
+<body>
+	<div style="display:flex">
+		<div align="center">
+			<!--<p> Worksheet File: </p>-->
+			<canvas id="imageCanvas" width="750" height="970" style="border:1pt dashed #ff0000"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
+			<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" > 
+		</div>
+
+		<div style="margin:5pt" align="center">
+			<button id="drawbox" onclick="drawBox()">Draw Box</button>
+		</div>
+	</div>
+</body>
+
+<script language="JavaScript">
+
+var image = document.getElementById('LoadImage');
+var canvas = document.getElementById('imageCanvas');
+var ctx = canvas.getContext('2d');
+var bxButton = document.getElementById('drawbox');
+	//canvas.addEventListener('onclick',drawBox(),false);
+var x = 0;
+var y = 20;
+
+function resizeImg(){
+	var scaleFactor = 1;
+	// if one of the image dimensions is greater than the size of the canvas
+	if ((image.width > canvas.width) || (image.height > canvas.height)) {
+		// determine the smaller ratio between side lengths in pixels:
+		// if width ratio is smaller
+		if ((canvas.width / image.width) < (canvas.height / image.height)){
+			scaleFactor = canvas.width / image.width;
+			image.width = image.width*scaleFactor;
+			image.style.height = "auto";
+		}
+		// if height ratio is smaller
+		if ((canvas.height / image.height) < (canvas.width / image.width)){
+			scaleFactor = canvas.height / image.height;
+			image.height = image.height*scaleFactor;
+			image.style.width = "auto";
+		}
+	}
+	//alert("image variable: " + image + "\nimage width: " + image.width + " image height: " + image.height + "\ncanvas variable: " + canvas + "\ncanvas width: " + canvas.width + " canvas height: " + canvas.height);
+	ctx.drawImage(image,0,0,image.width,image.height);
+	image.style.display = "none";
+}
+
+
+function drawBox(){
+	if (bxButton.innerHTML == "Draw Box"){
+		bxButton.innerHTML = "Drawing";
+	}
+	else if (bxButton.innerHTML == "Drawing"){
+		bxButton.innerHTML = "Draw Box"
+	}
+	ctx.moveTo(x,x);
+	ctx.lineTo(y,y);
+	ctx.stroke();
+	x = x + 25;
+	y = y + 25;
+}
+
+
+/*function drawBox() {
+	if (bxButton.innerHTML == "Draw Box"){
+		bxButton.innerHTML = "Drawing";
+	}
+	if (bxButton.innerHTML == "Drawing"){
+		bxButton.innerHTML = "Draw Box"
+	}
+	//var mousePos = getMousePos(canvas,evt);
+	//alert("x position: " + mousePos.x + " y position: " + mousePos.y);
+}
+
+function getMousePos(canvas,evt){
+	var rect = canvas.getBoundingClientRect();
+	return{
+		x: evt.clientX - rect.left,
+		y: evt.clientY - rect.top
+	};
+}*/
+
+</script>
+</html>
+

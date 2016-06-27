@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Canvas Editer Version 1</title>
+</head>
+
+<body>
+<p> Worksheet File: </p>
+<input type="file" id="LoadImage" name="LoadImage"/>
+<canvas id="imageCanvas" width="750" height="970"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
+
+<script language="JavaScript">
+
+var imageLoader = document.getElementById('LoadImage');
+	imageLoader.addEventListener('change', handleImage, false);
+var canvas = document.getElementById('imageCanvas');
+	//canvas.addEventListener('drag')
+var ctx = canvas.getContext('2d');
+
+function handleImage(e){
+	var reader = new FileReader()
+	reader.onload = function(event){
+		var img = new Image();
+		img.onload = function(){
+		/*var scaleFactor = 1;
+		if ((newImage.width > canvas.width) || (newImage.height > canvas.height)) {
+		if ((canvas.width / newImage.width) < (canvas.height / newImage.height)){
+			scaleFactor = canvas.width / newImage.width;
+		}
+		if ((canvas.height / newImage.height) < (canvas.width / newImage.width)){
+			scaleFactor = canvas.height / newImage.height;
+		}*/
+			canvas.width = img.width;
+			canvas.height = img.height;
+			canvas.style = "border:1px dashed #ff0000"
+			ctx.drawImage(img,0,0);
+		}
+		img.src = event.target.result;
+	}
+	reader.readAsDataURL(e.target.files[0]);
+}
+
+</script>
+</body>
+</html>
+

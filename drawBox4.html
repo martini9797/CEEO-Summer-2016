@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Drawing Box Animation on Click</title>
+</head>
+
+<body>
+	<div style="display:flex" align="center">
+		<div align="center">
+			<canvas id="imageCanvas" width="750" height="970" style="border:1pt dotted #ff0000"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
+			<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" >
+		</div>
+		<div style="margin:8pt;position:fixed">
+			<br>
+			<button id="resetbox" onclick="resetCanvas()">Reset Worksheet</button>
+			<br><br><br>
+			<button id="namebox" onclick="startDrawFunc()">New Name Box</button>
+			<br><br>
+			<button id="answerbox" onclick="startDrawFunc()">New Answer Box</button>
+			<br><br>
+			<button id="diagrambox" onclick="startDrawFunc()">New Diagram Box</button>
+		</div>
+	</div>
+</body>
+
+<script language="JavaScript">
+
+var canvas = document.getElementById('imageCanvas');
+var image = document.getElementById('LoadImage');
+var ctx = canvas.getContext('2d');
+
+var newWorksheet = new Image(), newDataURL;
+
+var startDraw = false, drawing = false;
+var startx = 0, starty = 0, endx = 0, endy = 0;
+
+var requestAnimationFrame = window.requestAnimationFrame ||
+							window.mozRequestAnimationFrame ||
+							window.webkitRequestAnimationFrame ||
+							window.msRequestAnimationFrame;
+
+canvas.addEventListener('mousedown', function(event){
+	
+	if(startDraw && !drawing){
+		drawing= true;
+		var coor = getCoor(event);
+		startx = coor.x;
+		starty = coor.y;
+		endx = coor.x + 1;
+		endy = coor.y + 1;
+		drawBox();
+	}
+
+}, false);
+
+canvas.addEventListener('mouseup', function(){
+	
+	drawing = false;
+	startDraw = false;
+	newDataURL = canvas.toDataURL();
+	newWorksheet.src = newDataURL;
+	canvas.style.cursor = "default";
+
+}, false);
+
+canvas.addEventListener('mousemove', function(event){
+	if(drawing){
+		var coor = getCoor(event);
+		endx = coor.x;
+		endy = coor.y;
+	}
+},false);
+
+function getCoor(event){
+
+	var rect = canvas.getBoundingClientRect();
+	var xcoor, ycoor, offsetX = rect.left, offsetY = rect.top;
+	xcoor = Math.floor(event.pageX - offsetX);
+	ycoor = Math.floor(event.pageY - offsetY);
+
+	return {
+		x: xcoor,
+		y: ycoor
+	};
+}
+
+function drawBox(){
+	if (drawing){
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
+		ctx.beginPath();
+		ctx.setLineDash([6]);
+		ctx.rect(startx,starty,endx - startx,endy - starty);
+		ctx.strokeStyle = "black";
+		ctx.closePath();
+		ctx.stroke();
+	}
+	requestAnimationFrame(drawBox);
+}
+
+function startDrawFunc(){
+	canvas.style.cursor = "crosshair";
+	startDraw = true;
+	//alert("size of image: " + image.width + " by " + image.height);
+}
+
+function resizeImg(){
+	var scaleFactor = 1;
+	// if one of the image dimensions is greater than the size of the canvas
+	if ((image.width > canvas.width) || (image.height > canvas.height)) {
+		// determine the smaller ratio between side lengths in pixels:
+		// if width ratio is smaller
+		if ((canvas.width / image.width) < (canvas.height / image.height)){
+			scaleFactor = canvas.width / image.width;
+			image.width = image.width*scaleFactor;
+			image.style.height = "auto";
+		}
+		// if height ratio is smaller
+		if ((canvas.height / image.height) < (canvas.width / image.width)){
+			scaleFactor = canvas.height / image.height;
+			image.height = image.height*scaleFactor;
+			image.style.width = "auto";
+		}
+	}
+	
+	newWorksheet.src = image.src;
+	ctx.drawImage(image,0,0,image.width,image.height);
+	image.style.display = "none";
+}
+
+function resetCanvas(){
+	newWorksheet.src = image.src;
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
+}
+
+</script>
+</html>
