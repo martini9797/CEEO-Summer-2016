@@ -2,36 +2,72 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title> Drawing Box Animation on Click</title>
+<title> Testing UI </title>
+<style>
+	#nav {
+		width:300px;
+		height:100%;
+		background-color:#eee;
+		position:fixed;
+	}
+
+	button.accordion{
+		background-color:#ddd;
+		padding:18px;
+		font-size:15px;
+		width:100%;
+		cursor:pointer;
+	}
+
+	button.accordion.active,
+	button.accordion.hover{
+		background-color:#ccc;
+	}
+
+	div.boxInfo{
+		padding:18px;
+		display:none;
+		background-color:white;
+	}
+
+	div.panel.show{
+		display:block !important;
+	}
+
+</style>
 </head>
 
 <body>
-	<div style="display:flex" align="center">
-		<div align="center">
-			<canvas id="imageCanvas" width="750" height="970" style="border:1pt dotted #ff0000"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
-			<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" >
-		</div>
-		<div style="margin:8pt;position:fixed;background-color:#0000ff">
-			<br>
-			<button id="resetbox" onclick="resetCanvas()">Reset Worksheet</button>
-			<br><br><br>
-			<button id="namebox" onclick="startDrawFunc()" onmouseover="displaytext('name')" onmouseleave="displaytext()">New Name Box</button>
-			<br><br>
-			<button id="answerbox" onclick="startDrawFunc()" onmouseover="displaytext('answer')" onmouseleave="displaytext()">New Answer Box</button>
-			<br><br>
-			<button id="diagrambox" onclick="startDrawFunc()" onmouseover="displaytext('diagram')" onmouseleave="displaytext()">New Diagram Box</button>
-			<br><br>
-			<p id="par">Worksheet Editor Verison 5.01 
-			Load worksheet in jpeg/png format to begin editting.</p>
+	<div id="nav">
+		<div>
+			<button class="accordion">Box 1</button>
+			<div class="boxInfo">
+				<p>Box info and stuff would go here...</p>
+			</div>
+			<button class="accordion">Box 2</button>
+			<div class="boxInfo">
+				<p>More information would be here...</p>
+			</div>
 		</div>
 	</div>
 </body>
 
+
+
 <script language="JavaScript">
 
-var canvas = document.getElementById('imageCanvas');
+var acc = document.getElementsByClassName("accordion");
+var i;
+
+for (i=0; i<acc.length; i++){
+	acc[i].onclick = function(){
+		this.classList.toggle("active");
+		this.nextElementSibling.classList.toggle("show");
+	}
+}
+
+/*var canvas = document.getElementById('imageCanvas');
 var image = document.getElementById('LoadImage');
-var par = document.getElementById('par');
 var ctx = canvas.getContext('2d');
 
 var newWorksheet = new Image(), newDataURL;
@@ -163,23 +199,9 @@ function resetCanvas(){
 	newWorksheet.src = image.src;
 	ctx.clearRect(0,0,canvas.width,canvas.height);
 	ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
-}
+}*/
 
-function displaytext(button){
-	switch (button){
-		case "name":
-			par.innerHTML = "Click to create a box that defines where the name goes...";
-			break;
-		case "answer":
-			par.innerHTML = "Click to create a box that defines where an answer would be written...";
-			break;
-		case "diagram":
-			par.innerHTML = "Click to create a box that defines where a diagram would be drawn...";
-			break;
-		default:
-			par.innerHTML = "";
-	}
-}
+
 
 </script>
 </html>
