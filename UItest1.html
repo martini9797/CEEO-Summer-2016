@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title> Integrating UI Elements</title>
+<style>
+
+	body{
+		top:0;
+		left:0;
+		margin:0;
+		background-color:#666666;
+	}
+
+	#nav{
+		top:0;
+		right:0;
+		width:225px;
+		height:100%;
+		background-color:#666666;
+		position:fixed;
+	}
+
+	#navBorder{
+		margin:10pt;
+		margin-top:25pt;
+	}
+
+	button.accordion{
+		background-color:#ddd;
+		color:#444;
+		cursor:pointer;
+		padding:18px;
+		font-size:15px;
+		width:100%;
+		text-align:left;
+		border:none;
+		outline:none;
+		transition:0.4s;
+	}
+
+	button.accordion.active,
+	button.accordion:hover{
+		background-color:#ccc;
+	}
+
+	div.boxInfo{
+		padding:18px;
+		background-color:white;
+		display:none;
+	}
+
+	div.boxInfo.show{
+		display: block !important;
+	}
+
+	#canvasBorder{
+		top:0;
+		left:0;
+		background-color:#888888;
+		margin-right:225px;
+	}
+
+	#canvasBorder{
+		padding-top:25px;
+		padding-bottom:25px;
+	}
+
+	#imageCanvas{
+		display:block;
+		margin:0 auto;
+	}
+
+</style>
+</head>
+
+<body>
+	<div id="nav">
+		<div id="navBorder">
+		</div>
+	</div>
+	
+	<div id="canvasBorder">
+		<div id="canvasDiv">
+			<canvas id="imageCanvas" width="750" height="970" style="border:1pt dotted #0000ff"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
+			<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" >
+		</div>
+	</div>
+</body>
+
+<script language="JavaScript">
+
+var canvas = document.getElementById('imageCanvas');
+var image = document.getElementById('LoadImage');
+var par = document.getElementById('par');
+var ctx = canvas.getContext('2d');
+
+var newWorksheet = new Image(), newDataURL;
+
+var drawing = false, i = 1;
+var startx = 0, starty = 0, endx = 0, endy = 0;
+
+var requestAnimationFrame = window.requestAnimationFrame ||
+							window.mozRequestAnimationFrame ||
+							window.webkitRequestAnimationFrame ||
+							window.msRequestAnimationFrame;
+
+canvas.style.cursor = "crosshair";
+
+canvas.addEventListener('mousedown', function(event){
+	
+	if(!drawing){
+		drawing= true;
+		var coor = getCoor(event);
+		startx = coor.x;
+		starty = coor.y;
+		endx = coor.x + 1;
+		endy = coor.y + 1;
+		drawBox();
+	}
+
+}, false);
+
+canvas.addEventListener('mouseup', function(){
+	
+	drawing = false;
+	addAccordion();
+	newDataURL = canvas.toDataURL();
+	newWorksheet.src = newDataURL;
+	i++;
+
+}, false);
+
+canvas.addEventListener('mousemove', function(event){
+	if(drawing){
+		var coor = getCoor(event);
+		endx = coor.x;
+		endy = coor.y;
+	}
+},false);
+
+function getCoor(event){
+
+	var rect = canvas.getBoundingClientRect();
+	var xcoor, ycoor, offsetX = rect.left, offsetY = rect.top;
+	xcoor = Math.floor(event.pageX - offsetX - window.pageXOffset);
+	ycoor = Math.floor(event.pageY - offsetY - window.pageYOffset);
+
+	return {
+		x: xcoor,
+		y: ycoor
+	};
+}
+
+function drawBox(){
+	if (drawing){
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
+		ctx.beginPath();
+		ctx.setLineDash([6]);
+		ctx.rect(startx,starty,endx - startx,endy - starty);
+		ctx.strokeStyle = randomStroke();
+		ctx.closePath();
+		ctx.stroke();
+		requestAnimationFrame(drawBox);
+	}
+}
+
+function randomStroke(){
+	
+	var color;
+	
+	if (i > 4){
+		i = 1;
+	}
+	
+	switch(i){
+		case 1:
+			color = "blue";
+			break;
+		case 2:
+			color = "red";
+			break;
+		case 3:
+			color = "green";
+			break;
+		default:
+			color = "black";
+	}
+
+	return color;
+}
+
+function resizeImg(){
+	var scaleFactor = 1;
+	// if one of the image dimensions is greater than the size of the canvas
+	if ((image.width > canvas.width) || (image.height > canvas.height)) {
+		// determine the smaller ratio between side lengths in pixels:
+		// if width ratio is smaller
+		if ((canvas.width / image.width) < (canvas.height / image.height)){
+			scaleFactor = canvas.width / image.width;
+			image.width = image.width*scaleFactor;
+			image.style.height = "auto";
+		}
+		// if height ratio is smaller
+		if ((canvas.height / image.height) < (canvas.width / image.width)){
+			scaleFactor = canvas.height / image.height;
+			image.height = image.height*scaleFactor;
+			image.style.width = "auto";
+		}
+	}
+	
+	newWorksheet.src = image.src;
+	ctx.drawImage(image,0,0,image.width,image.height);
+	image.style.display = "none";
+}
+
+function resetCanvas(){
+	newWorksheet.src = image.src;
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
+}
+
+function addAccordion(){
+	var acc = document.getElementsByClassName('accordion')
+	var navBorder = document.getElementById("navBorder");
+
+	var butt =  document.createElement("button");
+	butt.className = "accordion";
+	butt.innerHTML = "Box " + (acc.length + 1);
+	
+	butt.onclick = function(){
+		this.classList.toggle("active");
+		this.nextElementSibling.classList.toggle("show");
+	}
+
+	navBorder.appendChild(butt);
+
+	var newDiv = document.createElement("div");
+	newDiv.className = "boxInfo";
+	var newPar = document.createElement("p");
+	var newText = document.createTextNode("Some Box Info...");
+
+	newPar.appendChild(newText);
+	newDiv.appendChild(newPar);
+	navBorder.appendChild(newDiv);
+
+}
+
+</script>
+</html>
