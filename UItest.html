@@ -29,21 +29,26 @@
 
 	button.accordion{
 		background-color:#ddd;
+		color:#444;
+		cursor:pointer;
 		padding:18px;
 		font-size:15px;
 		width:100%;
-		cursor:pointer;
+		text-align:left;
+		border:none;
+		outline:none;
+		transition:0.4s;
 	}
 
 	button.accordion.active,
-	button.accordion.hover{
+	button.accordion:hover{
 		background-color:#ccc;
 	}
 
 	div.boxInfo{
-		padding:18px;
-		display:none;
+		padding:0 18px;
 		background-color:white;
+		display:none;
 	}
 
 	div.panel.show{
@@ -73,14 +78,17 @@
 <body>
 	<div id="nav">
 		<div id="navBorder">
+
 			<button class="accordion">Box 1</button>
 			<div class="boxInfo">
 				<p>Box info and stuff would go here...</p>
 			</div>
+			
 			<button class="accordion">Box 2</button>
 			<div class="boxInfo">
 				<p>More information would be here...</p>
 			</div>
+
 		</div>
 	</div>
 	
@@ -98,7 +106,7 @@
 var acc = document.getElementsByClassName("accordion");
 var i;
 
-for (i=0; i<acc.length; i++){
+for (i = 0; i < acc.length; i++){
 	acc[i].onclick = function(){
 		this.classList.toggle("active");
 		this.nextElementSibling.classList.toggle("show");
