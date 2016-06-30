@@ -12,18 +12,45 @@
 		background-color:#666666;
 	}
 
+	#container{
+		overflow:hidden;
+		width:100%;
+		height:100%;
+	}
+
+	#canvasBorder{
+		overflow:hidden;
+		background-color:#888888;
+		padding-top:25px;
+		padding-bottom:25px;
+	}
+
+	#imageCanvas{
+		display:block;
+		margin:0 auto;
+	}
+
+	#blankDiv{
+		float:right;
+		width:275px;
+		height:275px;
+		background-color:#666666;		
+	}
+
 	#nav{
 		top:0;
 		right:0;
-		width:225px;
 		height:100%;
-		background-color:#666666;
+		width:275px;
 		position:fixed;
+		background-color:#666666;
 	}
 
 	#navBorder{
 		margin:10pt;
 		margin-top:25pt;
+		max-height:90%;
+		overflow:auto;
 	}
 
 	button.accordion{
@@ -46,6 +73,7 @@
 
 	div.boxInfo{
 		padding:18px;
+		font-size:15px;
 		background-color:white;
 		display:none;
 	}
@@ -54,37 +82,32 @@
 		display: block !important;
 	}
 
-	#canvasBorder{
-		top:0;
-		left:0;
-		background-color:#888888;
-		margin-right:225px;
-	}
-
-	#canvasBorder{
-		padding-top:25px;
-		padding-bottom:25px;
-	}
-
 	#imageCanvas{
-		display:block;
-		margin:0 auto;
+		cursor:crosshair;
 	}
 
 </style>
 </head>
 
 <body>
+	
 	<div id="nav">
 		<div id="navBorder">
 		</div>
 	</div>
-	
-	<div id="canvasBorder">
-		<div id="canvasDiv">
-			<canvas id="imageCanvas" width="750" height="970" style="border:1pt dotted #0000ff"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
-			<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" >
+
+	<div id="container">
+
+		<div id="blankDiv">
 		</div>
+
+		<div id="canvasBorder">
+			<div id="canvasDiv">
+				<canvas id="imageCanvas" width="750" height="970" style="border:1pt dotted #0000ff"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
+				<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" >
+			</div>
+		</div>
+
 	</div>
 </body>
 
@@ -92,20 +115,49 @@
 
 var canvas = document.getElementById('imageCanvas');
 var image = document.getElementById('LoadImage');
-var par = document.getElementById('par');
 var ctx = canvas.getContext('2d');
 
 var newWorksheet = new Image(), newDataURL;
 
 var drawing = false, i = 1;
 var startx = 0, starty = 0, endx = 0, endy = 0;
+var numBoxes = 0, headNode = null;
+
+class Box{
+	constructor(x1,y1,x2,y2,color,i){
+		if(x2 < x1){
+			this.topLx = x2;
+			this.bottomRx = x1;
+		} else{
+			this.topLx = x1;
+			this.bottomRx = x2;
+		}
+		if(y2 < y1){
+			this.topLy = y2;
+			this.bottomRy = y1;
+		} else{
+			this.topLy = y1;
+			this.bottomRy = y2;
+		}
+
+		this.color = color;
+		this.name = "Box " + i;
+		this.type = "Unkown";
+	}
+}
+
+class Node{
+	constructor(x1,y1,x2,y2,color,i){
+		this.data = new Box(x1,y1,x2,y2,color,i);
+		this.next;
+	}
+}
 
 var requestAnimationFrame = window.requestAnimationFrame ||
 							window.mozRequestAnimationFrame ||
 							window.webkitRequestAnimationFrame ||
 							window.msRequestAnimationFrame;
 
-canvas.style.cursor = "crosshair";
 
 canvas.addEventListener('mousedown', function(event){
 	
@@ -124,10 +176,14 @@ canvas.addEventListener('mousedown', function(event){
 canvas.addEventListener('mouseup', function(){
 	
 	drawing = false;
+	var newNode = new Node(startx,starty,endx,endy,randomStroke(),i);
+	newNode.next = headNode;
+	headNode = newNode;
 	addAccordion();
 	newDataURL = canvas.toDataURL();
 	newWorksheet.src = newDataURL;
 	i++;
+	numBoxes++;
 
 }, false);
 
