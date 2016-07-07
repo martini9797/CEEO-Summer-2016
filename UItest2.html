@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title> Integrating UI Elements</title>
+<title> Testing Drag and Drop</title>
 <style>
 
 	body{
@@ -12,10 +12,46 @@
 		background-color:#666666;
 	}
 
+	#loading{
+		top:0;
+		left:0;
+		margin:0;
+		width:100%;
+		min-height:550px;
+		height:100%;
+		position:fixed;
+		overflow:auto;
+		background-color:#666666;
+		z-index:10;
+	}
+
+	#dragndrop{
+		left:0;
+		right:0;
+		margin:45px;
+		margin-bottom:0;
+		height:350px;
+		border:3pt dashed #ffffff;
+	}
+
+	#startEditBtn{
+		position:absolute;
+		width:200px;
+		height:100px;
+		bottom:45px;
+		right:45px;
+	}
+
 	#container{
 		overflow:hidden;
 		width:100%;
 		height:100%;
+	}
+
+	#arrows{
+		overflow:hidden;
+		background-color:#0000ff;
+		height:35px;
 	}
 
 	#canvasBorder{
@@ -94,7 +130,7 @@
 	}
 
 	#imageCanvas{
-		cursor:crosshair;
+		/*cursor:crosshair;*/
 		background-color:white;
 	}
 
@@ -106,6 +142,21 @@
 </head>
 
 <body>
+
+	<div id="loading">
+		<div id="dragndrop">
+			<p style="position:relative;top:50%;transform:translateY(-50%);text-align:center;color:white;font-size:14pt">
+			Drag and drop or click inside the box to select files to start editing
+			</p>
+		</div>
+
+
+		<p id="filesUploaded" style="color:white; margin-left:45px">Files Uploaded: None</p>
+
+		<button type="button" id="startEditBtn">Start Editing --></button>
+
+	</div>
+	<!-- Loading screen will be a great place to impliment editing existing image stored in database-->
 	
 	<div id="nav">
 		<div id="navBorder">
@@ -117,22 +168,29 @@
 		<div id="blankDiv">
 		</div>
 
+		<div id="arrows">
+		</div>
+
 		<div id="canvasBorder">
 			<div id="canvasDiv">
 				<canvas id="imageCanvas" width="750" height="970" style="border:1pt dotted #0000ff"></canvas> <!-- pixle sizes are determined from ratio between 8.5x11, letter-sized paper-->
-				<img id="LoadImage" src="/worksheets/worksheetpg1-page-001.jpg" alt="worksheet" onload="resizeImg()" >
+				
 			</div>
 		</div>
 
 	</div>
+
 </body>
 
 <script language="JavaScript">
 
+var dragon = document.getElementById('dragndrop');
+makeDroppable(dragon);
+
 var canvas = document.getElementById('imageCanvas');
 var ctx = canvas.getContext('2d');
-var image = document.getElementById('LoadImage');
-//makeDroppable(canvas);
+
+var worksheets = new Object(), num = 0;
 
 var newWorksheet = new Image(), newDataURL;
 
@@ -163,49 +221,24 @@ class Box{
 	}
 }
 
+var editButton = document.getElementById("startEditBtn");
+	editButton.addEventListener('click', function(){
+
+		newWorksheet = worksheets["url 0"]
+
+		ctx.drawImage(worksheets["url 0"],0,0,canvas.width,canvas.height);
+
+		canvas.style.cursor = "crosshair";
+
+		var parent = document.body;
+		var child = document.getElementById("loading");
+		parent.removeChild(child);
+	})
 
 var requestAnimationFrame = window.requestAnimationFrame ||
 							window.mozRequestAnimationFrame ||
 							window.webkitRequestAnimationFrame ||
 							window.msRequestAnimationFrame;
-
-function makeDroppable(element){
-
-	ctx.textAlign = "center";
-	ctx.font = "30px Arial"
-	ctx.fillText("Drag and drop files or click to select files to edit.", 375,300);
-
-	var input = document.createElement('input');
-	input.setAttribute('type', 'file');
-	input.setAttribute('multiple', true);
-	input.style.display = 'none';
-
-	element.appendChild(input);
-
-	element.addEventListener('dragover', function(e){
-		e.preventDefault();
-		e.stopPropagation();
-		element.classList.add('dragover');
-	});
-
-	element.addEventListener('dragleave', function(e){
-		e.preventDefault();
-		e.stopPropagation();
-		element.classList.remove('dragover');
-	});
-
-	element.addEventListener('drop', function(e){
-		e.preventDefault();
-		e.stopPropagation();
-		element.classList.remove('dragover');
-	});
-
-	element.addEventListener('click', function(){
-		input.value = null;
-		input.click();
-	})
-
-}
 
 canvas.addEventListener('mousedown', function(event){
 	
@@ -295,34 +328,79 @@ function randomStroke(){
 	return color;
 }
 
-function resizeImg(){
-	var scaleFactor = 1;
-	// if one of the image dimensions is greater than the size of the canvas
-	if ((image.width > canvas.width) || (image.height > canvas.height)) {
-		// determine the smaller ratio between side lengths in pixels:
-		// if width ratio is smaller
-		if ((canvas.width / image.width) < (canvas.height / image.height)){
-			scaleFactor = canvas.width / image.width;
-			image.width = image.width*scaleFactor;
-			image.style.height = "auto";
-		}
-		// if height ratio is smaller
-		if ((canvas.height / image.height) < (canvas.width / image.width)){
-			scaleFactor = canvas.height / image.height;
-			image.height = image.height*scaleFactor;
-			image.style.width = "auto";
+function makeDroppable(element){
+
+	var input = document.createElement('input');
+	input.setAttribute('type', 'file');
+	input.setAttribute('multiple', true);
+	input.style.display = 'none';
+	input.addEventListener('change',function(e){
+		fileHandler(e);
+	});
+
+	element.appendChild(input);
+
+	element.addEventListener('dragover', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		element.classList.add('dragover');
+		element.style.borderColor = "lawngreen";
+	});
+
+	element.addEventListener('dragleave', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		element.classList.remove('dragover');
+		element.style.borderColor = "white";
+	});
+
+	element.addEventListener('drop', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		element.classList.remove('dragover');
+		element.style.borderColor = "white";
+		fileHandler(e);
+	});
+
+	element.addEventListener('click', function(){
+		input.value = null;
+		input.click();
+	})
+
+}
+
+function fileHandler(event){
+
+	var par = document.getElementById("filesUploaded");
+
+	var data = event.dataTransfer || event.target;
+	var files  = data.files;
+
+	if (files.length > 0){
+
+		for (var j = 0; j < files.length; j++){
+
+			var url = URL.createObjectURL(files[j]);
+			var img = new Image();
+			img.src = url;
+			worksheets[("url " + j)] = img;
+
+			if (par.innerHTML == "Files Uploaded: None"){
+				par.innerHTML = "Files Uploaded: ";
+			} else {
+				par.innerHTML += ", ";
+			}
+
+			par.innerHTML += files[j].name;
+
+			num++;
 		}
 	}
-	
-	newWorksheet.src = image.src;
-	ctx.drawImage(image,0,0,image.width,image.height);
-	image.style.display = "none";
 }
 
 function resetCanvas(){
-	newWorksheet.src = image.src;
 	ctx.clearRect(0,0,canvas.width,canvas.height);
-	ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
+	ctx.drawImage(worksheets["url 0"],0,0,canvas.width,canvas.height);
 }
 
 function addAccordion(){
@@ -365,17 +443,17 @@ function addAccordion(){
 
 function deleteBox(number){
 
-	delete boxes["Box " + number];
-	var parent = document.getElementById("navBorder");
-	var butt = document.getElementById("Button " + number);
+	delete boxes["Box " + number];								// delete the info from the boxes object
+	var parent = document.getElementById("navBorder");			// proccess to delete button and div from
+	var butt = document.getElementById("Button " + number);		//		the navigation pane
 	var div = document.getElementById("Accordion " + number);
 	parent.removeChild(butt);
 	parent.removeChild(div);
 
-	resetCanvas();
-	var BoxesArray = Object.keys(boxes);
-	var numBoxes = Object.keys(boxes).length;
-	for (var i = 0; i < numBoxes; i++){
+	resetCanvas();												// reset the canvas by loading the original img
+	var BoxesArray = Object.keys(boxes);						// get an array of all boxes listed in object
+	var numBoxes = Object.keys(boxes).length;					// get the length of the list
+	for (var i = 0; i < numBoxes; i++){							// loop through the list and draw each box
 
 		var thisBox = BoxesArray[i];
 
@@ -393,7 +471,7 @@ function deleteBox(number){
 
 	}
 
-	newDataURL = canvas.toDataURL();
+	newDataURL = canvas.toDataURL();							// update worksheet image object
 	newWorksheet.src = newDataURL;
 
 }

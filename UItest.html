@@ -15,7 +15,7 @@
 	#nav{
 		top:0;
 		right:0;
-		width:225px;
+		width:275px;
 		height:100%;
 		background-color:#666666;
 		position:fixed;
@@ -26,7 +26,7 @@
 		margin-top:25pt;
 	}
 
-	button.accordion{
+	h2.accordion{
 		background-color:#ddd;
 		color:#444;
 		cursor:pointer;
@@ -37,11 +37,16 @@
 		border:none;
 		outline:none;
 		transition:0.4s;
+		overflow:hidden;
 	}
 
-	button.accordion.active,
-	button.accordion:hover{
+	h2.accordion.active,
+	h2.accordion:hover{
 		background-color:#ccc;
+	}
+
+	button.delete{
+		float:right;
 	}
 
 	div.boxInfo{
@@ -77,7 +82,8 @@
 <body>
 	<div id="nav">
 		<div id="navBorder">
-
+			<h2 class="accordion">Box 1 <button class="delete"> x </button>
+			</h2>
 		</div>
 	</div>
 	
@@ -92,8 +98,8 @@
 
 <script language="JavaScript">
 
-var acc = document.getElementsByClassName("accordion");
-var i;
+/*var acc = document.getElementsByClassName("accordion");
+var i;*/
 
 var canvas = document.getElementById('imageCanvas');
 var ctx = canvas.getContext('2d');
@@ -103,14 +109,15 @@ ctx.fillStyle = "white";
 ctx.fillRect(0,0,canvas.width,canvas.height);
 ctx.closePath();
 
-for (i = 0; i < acc.length; i++){
+/*for (i = 0; i < acc.length; i++){
 	acc[i].onclick = function(){
 		this.classList.toggle("active");
 		this.nextElementSibling.classList.toggle("show");
 	}
-}
+}*/
 
 function addAccordion(){
+	var acc = document.getElementById('Accordion')
 	var navBorder = document.getElementById("navBorder");
 
 	var butt =  document.createElement("button");
@@ -134,9 +141,6 @@ function addAccordion(){
 	navBorder.appendChild(newDiv);
 
 }
-
-addAccordion();
-addAccordion();
 
 </script>
 </html>
