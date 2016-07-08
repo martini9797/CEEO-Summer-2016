@@ -224,7 +224,8 @@ class Box{
 var editButton = document.getElementById("startEditBtn");
 	editButton.addEventListener('click', function(){
 
-		newWorksheet = worksheets["url 0"]
+		var img = worksheets["url 0"];
+		newWorksheet.src = img.src;
 
 		ctx.drawImage(worksheets["url 0"],0,0,canvas.width,canvas.height);
 
