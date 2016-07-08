@@ -121,6 +121,8 @@
 	}
 
 	button.removeButton{
+		padding:1px;
+		border-radius:50%;
 		border:none;
 		float:right;
 		background-color:white;
@@ -459,13 +461,13 @@ function deleteBox(number){
 
 		var thisBox = BoxesArray[i];
 
-		var sx = boxes[thisBox].topLx;
+		var sx = boxes[thisBox].topLx;							// get box coordinates
 		var sy = boxes[thisBox].topLy;
 		var ex = boxes[thisBox].bottomRx;
 		var ey = boxes[thisBox].bottomRy;
-		var c = boxes[thisBox].color;
+		var c = boxes[thisBox].color;							// get color
 
-		ctx.beginPath();
+		ctx.beginPath();										// draw the box
 		ctx.rect(sx,sy,ex-sx,ey-sy);
 		ctx.strokeStyle = c;
 		ctx.closePath();
@@ -475,6 +477,12 @@ function deleteBox(number){
 
 	newDataURL = canvas.toDataURL();							// update worksheet image object
 	newWorksheet.src = newDataURL;
+
+}
+
+function createJSON(){
+
+
 
 }
 
