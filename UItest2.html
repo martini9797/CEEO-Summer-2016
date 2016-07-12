@@ -90,21 +90,22 @@
 		overflow:auto;
 	}
 
-	button.accordion{
+	h2.accordion{
 		background-color:#ddd;
 		color:#444;
 		cursor:pointer;
 		padding:18px;
+		margin:0;
 		font-size:15px;
-		width:100%;
+		font-weight:normal;
 		text-align:left;
 		border:none;
 		outline:none;
 		transition:0.4s;
 	}
 
-	button.accordion.active,
-	button.accordion:hover{
+	h2.accordion.active,
+	h2.accordion:hover{
 		background-color:#ccc;
 	}
 
@@ -125,7 +126,7 @@
 		border-radius:50%;
 		border:none;
 		float:right;
-		background-color:white;
+		background-color:#ddd;
 	}
 
 	button.removeButton:hover{
@@ -186,6 +187,9 @@
 </body>
 
 <script language="JavaScript">
+
+/* Constants */ 
+var MINBOX = 5;										// for multi browser support, using var and not const
 
 var dragon = document.getElementById('dragndrop');
 makeDroppable(dragon);
@@ -262,12 +266,14 @@ canvas.addEventListener('mouseup', function(){
 	
 	if(drawing){
 		drawing = false;
-		numBoxes++;
-		addAccordion();
-		newDataURL = canvas.toDataURL();
-		newWorksheet.src = newDataURL;
-		boxes[("Box " + numBoxes)] = new Box(startx,starty,endx,endy,randomStroke(),numBoxes);
-		i++;
+		if ((Math.abs(startx - endx) > MINBOX) || (Math.abs(starty - endy) > MINBOX)){	
+			numBoxes++;
+			addAccordion();
+			newDataURL = canvas.toDataURL();
+			newWorksheet.src = newDataURL;
+			boxes[("Area " + numBoxes)] = new Box(startx,starty,endx,endy,randomStroke(),numBoxes);
+			i++;
+		}
 	}
 
 }, false);
@@ -411,21 +417,15 @@ function addAccordion(){
 	var acc = document.getElementsByClassName('accordion')		// get elements in accordion class
 	var navBorder = document.getElementById("navBorder");		// get navBorder element, where the accordion lives
 
-	var butt =  document.createElement("button");				// create a new button
+	var butt =  document.createElement("h2");					// create a new button (h2 element)
 	butt.className = "accordion";								// assign class name
 	butt.id = "Button " + numBoxes;								// assign id to button
-	butt.innerHTML = "Box " + numBoxes;							// assign the text of the button
+	butt.innerHTML = "Area " + numBoxes;						// assign the text of the button
 	
 	butt.onclick = function(){									// add functionality to the button
 		this.classList.toggle("active");
 		this.nextElementSibling.classList.toggle("show");
 	}
-
-	navBorder.appendChild(butt);								// add button to navBorder div
-
-	var newDiv = document.createElement("div");					// create new div
-	newDiv.className = "boxInfo";								// assign class name
-	newDiv.id = "Accordion " + numBoxes;						// assign id to div
 
 	var newButt = document.createElement("button");				// create new button
 	newButt.className = "removeButton";							// add class name
@@ -434,7 +434,13 @@ function addAccordion(){
 		deleteBox(num);
 	}; 															// add on click function to delete box
 	newButt.innerHTML = "x";									// add text to the button
-	newDiv.appendChild(newButt);								// add button to div
+	butt.appendChild(newButt);									// add button to h2 element
+
+	navBorder.appendChild(butt);								// add button (h2 element) to navBorder div
+
+	var newDiv = document.createElement("div");					// create new div
+	newDiv.className = "boxInfo";								// assign class name
+	newDiv.id = "Accordion " + numBoxes;						// assign id to div
 
 	var newPar = document.createElement("p");					// create paragraph element
 	var newText = document.createTextNode("Some Box Info...");	// create text
@@ -447,7 +453,7 @@ function addAccordion(){
 
 function deleteBox(number){
 
-	delete boxes["Box " + number];								// delete the info from the boxes object
+	delete boxes["Area " + number];								// delete the info from the boxes object
 	var parent = document.getElementById("navBorder");			// proccess to delete button and div from
 	var butt = document.getElementById("Button " + number);		//		the navigation pane
 	var div = document.getElementById("Accordion " + number);
