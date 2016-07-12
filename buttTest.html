@@ -29,6 +29,8 @@
 <body>
 
 	<h2 id="button1"><button type="button" id="button2"></button></h2>
+	<br>
+	<canvas id="canvas1" style="width:500px; height:500px; border:1pt dashed #ff0000"></canvas>
 
 </body>
 
@@ -39,8 +41,19 @@ var head = document.getElementById("button1");
 head.addEventListener("mouseover", function(){
 
 		head.style.backgroundColor = "green";
-		
+
 },false)
+
+var canvas = document.getElementById("canvas1");
+var ctx = canvas.getContext('2d');
+
+	ctx.beginPath();
+	ctx.rect(10,10,20,30);
+	ctx.setLineDash([6]);
+	ctx.lineWidth = 10;
+	ctx.strokeStyle = "blue";
+	ctx.closePath();
+	ctx.stroke();
 
 
 </script>

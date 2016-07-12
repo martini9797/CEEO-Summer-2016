@@ -232,7 +232,7 @@ class Box{
 			this.bottomRy = y2;
 		}
 
-		this.color = color;
+		this.lineColor = color;
 		this.name = "Box " + i;
 		this.type = "Unkown";
 	}
@@ -424,7 +424,7 @@ function resetCanvas(){
 	ctx.drawImage(worksheets["url 0"],0,0,canvas.width,canvas.height);
 }
 
-function addAccordion(boxObject){
+function addAccordion(boxObj){
 	var acc = document.getElementsByClassName('accordion')		// get elements in accordion class
 	var navBorder = document.getElementById("navBorder");		// get navBorder element, where the accordion lives
 
@@ -433,18 +433,18 @@ function addAccordion(boxObject){
 	butt.id = "Button " + numBoxes;								// assign id to button
 	butt.innerHTML = "Area " + numBoxes;						// assign the text of the button
 	
-	butt.onmouseover = function(boxObject){						// allow boxes to be highlighted when  
+	butt.onmouseover = function(){						// allow boxes to be highlighted when  
 																//	the name is hovered over
 		ctx.beginPath();
-		ctx.setLineDash([6]);
-		ctx.rect(boxObject.topLx,boxObject.topLy,boxObject.bottomRx - boxObject.topLx,boxObject.bottomRy - boxObject.topLy);
-		//ctx.strokeStyle = boxObject.color;
-		ctx.lineWidth = 10;
+		ctx.rect(boxObj.topLx,boxObj.topLy,boxObj.bottomRx - boxObj.topLx,boxObj.bottomRy -  boxObj.topLy);
+		ctx.strokeStyle = boxObj.lineColor;
+		ctx.lineWidth = 5;
 		ctx.closePath();
 		ctx.stroke();
 	}
 
 	butt.onmouseleave = function(){								// get rid of highlight when mouse leaves
+		
 		ctx.clearRect(0,0,canvas.width,canvas.height);
 		ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
 	}
@@ -498,7 +498,7 @@ function deleteBox(number){
 		var sy = boxes[thisBox].topLy;
 		var ex = boxes[thisBox].bottomRx;
 		var ey = boxes[thisBox].bottomRy;
-		var c = boxes[thisBox].color;							// get color
+		var c = boxes[thisBox].lineColor;						// get color
 
 		ctx.beginPath();										// draw the box
 		ctx.rect(sx,sy,ex-sx,ey-sy);
