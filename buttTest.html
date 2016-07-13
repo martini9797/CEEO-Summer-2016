@@ -2,59 +2,46 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Button Inside Button Testing </title>
+<title>Testing Div Placement </title>
 <style>
 
-	#button1{
-		top:0;
-		left:0;
-		width:500px;
-		height:250px;
-		padding:10px;
-		background-color:blue;
-		overflow:hidden;
+	body{
+		margin:0;
 	}
 
-	#button2{
+	#testDiv{
 		top:0;
 		right:0;
-		width:100px;
-		height:100px;
-		background-color:#ff0000;
-		float:right;
+		bottom:0;
+		width:275px;
+		background-color:#0000aa;
+		position:fixed;
+	}
+
+	#innerdiv{
+		top:0;
+		left:0;
+		right:0;
+		bottom:0;
+		margin:10px;
+		margin-top:25px;
+		position:absolute;
+		background-color:#aa0000;
 	}
 
 </style>
 </head>
 <body>
 
-	<h2 id="button1"><button type="button" id="button2"></button></h2>
-	<br>
-	<canvas id="canvas1" style="width:500px; height:500px; border:1pt dashed #ff0000"></canvas>
+	<div id="testDiv">
+		<div id="innerdiv">
+			<input type="text" value="Martin">
+		</div>
+	</div>
 
 </body>
 
 <script language="JavaScript">
-
-var head = document.getElementById("button1");
-
-head.addEventListener("mouseover", function(){
-
-		head.style.backgroundColor = "green";
-
-},false)
-
-var canvas = document.getElementById("canvas1");
-var ctx = canvas.getContext('2d');
-
-	ctx.beginPath();
-	ctx.rect(10,10,20,30);
-	ctx.setLineDash([6]);
-	ctx.lineWidth = 10;
-	ctx.strokeStyle = "blue";
-	ctx.closePath();
-	ctx.stroke();
-
 
 </script>
 </html>
