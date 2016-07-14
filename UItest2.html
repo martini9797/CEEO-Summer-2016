@@ -101,7 +101,7 @@
 	}
 
 	#boxButtons{
-		top:220px;
+		top:200px;
 		left:0;
 		right:0;
 		bottom:0;
@@ -212,10 +212,10 @@
 	<div id="nav">
 		<div id="navBorder">
 			<form>
-				<input type="text" id="worksheetTitle" value="Worksheet Title"><br>
-				<input type="text" id="subSelect" value="Class/Subject">
+				<input type="text" id="worksheetTitle" placeholder="Worksheet Title"><br>
+				<input type="text" id="subSelect" placeholder="Class/Subject">
 			</form><br>
-			<p id="submitBtn">Submit</p><br>
+			<p id="submitBtn">Submit</p>
 			<!--<p id="resetBtn">Reset Worksheet</p>-->
 			<h3 style="color:white">Areas Drawn: </h3>
 			<div id="boxButtons">
@@ -343,7 +343,9 @@ canvas.addEventListener('mousemove', function(event){
 },false);
 
 var submitBtn = document.getElementById("submitBtn");
-	submitBtn.addEventListener("click",sendJSON(),false);
+	submitBtn.onclick = function(){
+		sendJSON();
+	};
 
 function getCoor(event){
 
@@ -482,7 +484,7 @@ function addAccordion(boxObj){
 	butt.id = "Button " + numBoxes;								// assign id to button
 	butt.innerHTML = "Area " + numBoxes;						// assign the text of the button
 	
-	butt.onmouseover = function(){						// allow boxes to be highlighted when  
+	butt.onmouseover = function(){								// allow boxes to be highlighted when  
 																//	the name is hovered over
 		ctx.beginPath();
 		ctx.rect(boxObj.topLx,boxObj.topLy,boxObj.bottomRx - boxObj.topLx,boxObj.bottomRy -  boxObj.topLy);
@@ -498,7 +500,7 @@ function addAccordion(boxObj){
 		ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
 	}
 
-	butt.onclick = function(){									// allow button to expand
+	butt.onclick = function clickAccdn(){						// allow button to expand
 		this.classList.toggle("active");
 		this.nextElementSibling.classList.toggle("show");
 	}
@@ -507,6 +509,7 @@ function addAccordion(boxObj){
 	newButt.className = "removeButton";							// add class name
 	var num = numBoxes;											// create a copy of current number of boxes
 	newButt.onclick = function(){
+		butt.onclick = function(){};
 		deleteBox(num);
 	}; 															// add on click function to delete box
 	newButt.innerHTML = "x";									// add text to the button
@@ -565,10 +568,24 @@ function deleteBox(number){
 
 function sendJSON(){
 
-	var teacher = "teacher";
-	var worksheetTittle = document.getElementById("worksheetTitle");
-	var subject - document.getElementById("subSelect");
+	var teacher = "Teacher";
+	var worksheetTitle = document.getElementById("worksheetTitle");
+	var subject = document.getElementById("subSelect");
+	var pageNum = "1";
+	var totPage = "1";
 
+	var BoxesArray = Object.keys(boxes);					// get an array of all boxes listed in boxes object
+	var numBoxes = Object.keys(boxes).length;				// get the length of the list
+
+	if (numBoxes == 0) {
+		alert("No areas were drawn. Worksheet will not be submitted.");
+		return;
+	}else if ((worksheetTitle.value == "")||(subject.value == "")){
+		alert("Worksheet title and/or class/subject not set. Worksheet will not be submitted.");
+		return;
+	}
+
+	
 }
 
 </script>
