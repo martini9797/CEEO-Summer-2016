@@ -620,12 +620,12 @@ function sendJSON(){
 
 		areas[i] = boxToSend;		
 	}
-
+	worksheetData["Areas"] = areas;
 	worksheetData["Image"] = "Image";
-
+	console.log(worksheetData);
 	console.log("entering post request");
-	
-	$.ajax({
+	console.log("This would be a POST");
+	/*$.ajax({
 			method: "POST",
 			crossOrigin: true,
 			url: url,
@@ -633,7 +633,7 @@ function sendJSON(){
 			success:function(data){
 				console.log("It worked!");
 			}
-		});
+		});*/
 }
 
 </script>
