@@ -262,36 +262,41 @@ var drawing = false;
 var startx = 0, starty = 0, endx = 0, endy = 0;
 var numBoxes = 0, i = 0, boxes = new Object();
 
-class Box{
-	constructor(x1,y1,x2,y2,color,i){
-		if(x2 < x1){
-			this.topLx = x2;
-			this.bottomRx = x1;
-		} else{
-			this.topLx = x1;
-			this.bottomRx = x2;
-		}
-		if(y2 < y1){
-			this.topLy = y2;
-			this.bottomRy = y1;
-		} else{
-			this.topLy = y1;
-			this.bottomRy = y2;
-		}
+function Box(x1,y1,x2,y2,color,i){
 
-		this.lineColor = color;
-		this.name = "Box " + i;
-		this.type = "Unkown";
+	var box = new Object();
+
+	if(x2 < x1){
+		box.topLx = x2;
+		box.bottomRx = x1;
+	} else{
+		box.topLx = x1;
+		box.bottomRx = x2;
 	}
+	if(y2 < y1){
+		box.topLy = y2;
+		box.bottomRy = y1;
+	} else{
+		box.topLy = y1;
+		box.bottomRy = y2;
+	}
+
+	box.lineColor = color;
+	box.name = "Box " + i;
+	box.type = "Unkown";
+
+	return {
+		boxInfo: box
+	};
 }
 
 var editButton = document.getElementById("startEditBtn");
 	editButton.addEventListener('click', function(){
 
-		var img = worksheets["url 0"];
+		var img = worksheets["url 0"]["imageURL"];
 		newWorksheet.src = img.src;
 
-		ctx.drawImage(worksheets["url 0"],0,0,canvas.width,canvas.height);
+		ctx.drawImage(worksheets["url 0"]["imageURL"],0,0,canvas.width,canvas.height);
 
 		canvas.style.cursor = "crosshair";
 
@@ -327,7 +332,7 @@ canvas.addEventListener('mouseup', function(){
 			newDataURL = canvas.toDataURL();
 			newWorksheet.src = newDataURL;
 			numBoxes++;
-			boxes[("Area " + numBoxes)] = new Box(startx,starty,endx,endy,randomStroke(),numBoxes);
+			boxes[("Area " + numBoxes)] = Box(startx,starty,endx,endy,randomStroke(),numBoxes);
 			addAccordion(boxes[("Area " + numBoxes)]);
 			i++;
 		}
@@ -453,10 +458,15 @@ function fileHandler(event){
 
 		for (var j = 0; j < files.length; j++){
 
+			var uploadedFile = new Object();
+
 			var url = URL.createObjectURL(files[j]);
 			var img = new Image();
 			img.src = url;
-			worksheets[("url " + j)] = img;
+			uploadedFile["imageURL"] = img;
+			uploadedFile["fileName"] = files[j].name;
+
+			worksheets[("url " + j)] = uploadedFile;
 
 			if (par.innerHTML == "Files Uploaded: None"){
 				par.innerHTML = "Files Uploaded: ";
@@ -473,7 +483,7 @@ function fileHandler(event){
 
 function resetCanvas(){
 	ctx.clearRect(0,0,canvas.width,canvas.height);
-	ctx.drawImage(worksheets["url 0"],0,0,canvas.width,canvas.height);
+	ctx.drawImage(worksheets["url 0"]["imageURL"],0,0,canvas.width,canvas.height);
 }
 
 function addAccordion(boxObj){
@@ -581,19 +591,33 @@ function sendJSON(){
 	var teacher = "Teacher";
 	var subject = document.getElementById("subSelect").value;
 	var worksheetTitle = document.getElementById("worksheetTitle").value;
-	var ID = document.getElementById("worksheetTitle").value + timeStamp;
 	var pageNum = "1";
 	var totPage = "1";
 
 	var BoxesArray = Object.keys(boxes);					// get an array of all boxes listed in boxes object
 	var numBoxes = Object.keys(boxes).length;				// get the length of the list
 
-	if (numBoxes == 0) {
-		alert("No areas were drawn. Worksheet will not be submitted.");
-		return;
-	}else if ((worksheetTitle.value == "")||(subject.value == "")){
-		alert("Worksheet title and/or class/subject not set. Worksheet will not be submitted.");
-		return;
+	/*Initiate checks that prompt user to make sure worksheet title and subject are defined, and areas are drawn*/
+	if (numBoxes == 0){
+		if (!confirm("No areas were defined. To submit worksheet, press OK. Otherwise, press Cancel.")){return;}
+	}
+	if (worksheetTitle == ""){
+		if (confirm("Worksheet title not set. \nTo submit worksheet without setting title, press OK. Otherwise, press Cancel and update worksheet title.")){
+			worksheetTitle = worksheets["url 0"]["fileName"];
+			var wrklength = worksheetTitle.length;
+			var i = 1;
+			for (i = 1; i < wrklength; i++){
+				if (worksheetTitle[wrklength-i] == ".") {
+					break;
+				}
+			}
+			worksheetTitle = worksheetTitle.substr(0,wrklength - i);
+		} else {
+			return;
+		}
+	}
+	if (subject == ""){
+		if (!confirm("Worksheet class/subject not set. \nTo submit worksheet without setting title, press OK. Otherwise, press Cancel and update worksheet class/subject.")) {return;}
 	}
 
 	var worksheetData = new Object();
@@ -601,7 +625,7 @@ function sendJSON(){
 	worksheetData["Teacher"] = teacher;
 	worksheetData["Subject"] = subject;
 	worksheetData["Worksheet Title"] = worksheetTitle;
-	worksheetData["ID"] = ID;
+	worksheetData["ID"] = worksheetTitle + timeStamp;
 	worksheetData["Page Number"] = pageNum;
 	worksheetData["Total Pages"] = totPage;
 
@@ -622,9 +646,11 @@ function sendJSON(){
 	}
 	worksheetData["Areas"] = areas;
 	worksheetData["Image"] = "Image";
+
 	console.log(worksheetData);
-	console.log("entering post request");
+	console.log("Entering POST request");
 	console.log("This would be a POST");
+
 	/*$.ajax({
 			method: "POST",
 			crossOrigin: true,
