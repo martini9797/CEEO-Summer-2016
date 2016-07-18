@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title> Testing Drag and Drop</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <style>
 
 	body{
@@ -568,9 +569,19 @@ function deleteBox(number){
 
 function sendJSON(){
 
+	var url = "http://ceeodocker-dev-01.uit.tufts.edu:8085/worksheet";// url to send the json to; server url
+
+	var timeStamp;											// get timeStamp
+	if (Date.now){											// cross-browser support stuff
+		timeStamp = Date.now();
+	} else {
+		timeStamp = Date.getTime();
+	}
+
 	var teacher = "Teacher";
-	var worksheetTitle = document.getElementById("worksheetTitle");
-	var subject = document.getElementById("subSelect");
+	var subject = document.getElementById("subSelect").value;
+	var worksheetTitle = document.getElementById("worksheetTitle").value;
+	var ID = document.getElementById("worksheetTitle").value + timeStamp;
 	var pageNum = "1";
 	var totPage = "1";
 
@@ -585,7 +596,44 @@ function sendJSON(){
 		return;
 	}
 
+	var worksheetData = new Object();
+
+	worksheetData["Teacher"] = teacher;
+	worksheetData["Subject"] = subject;
+	worksheetData["Worksheet Title"] = worksheetTitle;
+	worksheetData["ID"] = ID;
+	worksheetData["Page Number"] = pageNum;
+	worksheetData["Total Pages"] = totPage;
+
+	var areas = new Object();
+	areas[0] = "QR Code Info";
+	for (var i = 1; i <= numBoxes; i++){
+		
+		var thisBox = BoxesArray[i-1];
+
+		var boxToSend = new Object();
+		boxToSend["topLx"] = boxes[thisBox].topLx;
+		boxToSend["topLy"] = boxes[thisBox].topLy;
+		boxToSend["bottomRx"] = boxes[thisBox].bottomRx;
+		boxToSend["bottomRy"] = boxes[thisBox].bottomRy;
+		boxToSend["type"] = boxes[thisBox].type;
+
+		areas[i] = boxToSend;		
+	}
+
+	worksheetData["Image"] = "Image";
+
+	console.log("entering post request");
 	
+	$.ajax({
+			method: "POST",
+			crossOrigin: true,
+			url: url,
+			data: JSON.stringify(worksheetData),
+			success:function(data){
+				console.log("It worked!");
+			}
+		});
 }
 
 </script>
