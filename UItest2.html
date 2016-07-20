@@ -514,7 +514,7 @@ function Box(x1,y1,x2,y2,color,i){							// "class" definition; class is set as 
 function resetCanvas(){
 
 	ctx.clearRect(0,0,canvas.width,canvas.height);					// clear all the pixels in the canvas
-	ctx.drawImage(worksheets["url 0"]["imageURL"],0,0,canvas.width,canvas.height);	// redraw original worksheet
+	ctx.drawImage(worksheets["url 0"]["wkstImage"],0,0,canvas.width,canvas.height);	// redraw original worksheet
 
 }
 
@@ -700,17 +700,18 @@ function sendJSON(){
 
 	/* Testing a decoding of a canvas image data url */ 
 	var imageData = canvas.toDataURL();
-	$.ajax({
+	imageData = imageData.substring(22);
+	var decodedData = window.atob(imageData);
+
+	/*$.ajax({
 		method: "POST",
-		//crossOrigin: true,
-		url: "imageDecoder.php",
+		url: "imageDecode.asp",
 		contentType: "application/upload",
 		data: imageData,
 		success: function(data){
 			console.log(data);
 		}
-	});
-
+	});*/
 }
 
 </script>
