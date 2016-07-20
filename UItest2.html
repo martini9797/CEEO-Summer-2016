@@ -26,6 +26,10 @@
 		z-index:10;
 	}
 
+	#loading:drag{
+		cursor:no-drop;
+	}
+
 	#dragndrop{
 		left:0;
 		right:0;
@@ -55,7 +59,7 @@
 		overflow:hidden;
 		left:0;
 		right:275px;
-		background-color:#0000ff;
+		background-color:#666666;
 		height:35px;
 	}
 
@@ -246,28 +250,246 @@
 <script language="JavaScript">
 
 /* Constants */ 
-var MINBOX = 10;										// for multi browser support, using var and not const
+var MINBOX = 10;											// for multi browser support, using var and not const
 
-var dragon = document.getElementById('dragndrop');
-makeDroppable(dragon);
+/* Variables for drawing areas/boxes */
+var drawing = false;										// state/flag; when app is launched, user not drawing
+var startx = 0, starty = 0, endx = 0, endy = 0;				// Coordinate points to determine area locations
+var colorCounter = 0, boxes = new Object();					// colorCounter is counter to choose colors for strokes
+															//		boxes is an object/array keeping track of area info 
+															// 		like coordinates, area type, line color
 
-var canvas = document.getElementById('imageCanvas');
-var ctx = canvas.getContext('2d');
+/* Variables for saving files */
+var worksheets = new Object()/*, num = 0*/;					// object to keep track of all worksheets uploaded 
+var newWorksheet = new Image();								// image object to keep track of most recent canvas background
 
-var worksheets = new Object(), num = 0;
 
-var newWorksheet = new Image(), newDataURL;
+/* Variables for html elements */
+var dragon = document.getElementById('dragndrop');			// drag and drop box on starting screen
+var editButton = document.getElementById("startEditBtn");	// start editing button on starting screen
+var canvas = document.getElementById('imageCanvas');		// canvas on the editing screen
+var ctx = canvas.getContext('2d');							// context of the canvas
+var submitBtn = document.getElementById("submitBtn");		// submit button on editing screen
 
-var drawing = false;
-var startx = 0, starty = 0, endx = 0, endy = 0;
-var numBoxes = 0, i = 0, boxes = new Object();
+/* Adding functionality to webpage */
+window.addEventListener('drop', function(e){				// pevent the webpage from opening a dropped file 
+	e.preventDefault();
+	e.stopPropagation();
+});
 
-function Box(x1,y1,x2,y2,color,i){
+window.addEventListener('dragover', function(e){			// pevent the webpage from opening a dragged file 
+	e.preventDefault();
+	e.stopPropagation();
+});
 
+makeDroppable(dragon);										// making the box on the starting screen droppable
+
+editButton.addEventListener('click', function(){			// adding functionality to start edit button on starting screen
+
+	newWorksheet.src = worksheets["url 0"]["wkstImage"].src;	// original image becomes canvas background  
+
+	ctx.drawImage(worksheets["url 0"]["wkstImage"],0,0,canvas.width,canvas.height);	// draw worksheet to size of canvas
+
+	var parent = document.body;	
+	var child = document.getElementById("loading");			
+	parent.removeChild(child);								// delete starting screen div
+
+	canvas.style.cursor = "crosshair";						// change cursor style (there was a bug when it was set in css 
+															//		before deleting starting screen)
+
+},false);
+
+canvas.addEventListener('mousedown', function(event){		// clicking down starts drawing a box
+	
+	if(!drawing){											// only happens when in state of not drawing
+		drawing= true;										
+		var coor = getCoor(event);							// get the coordiates of the pinter
+		startx = coor.x;									// set starting x and y coordinates
+		starty = coor.y;
+		endx = coor.x + 1;									// set ending x and y coordinates (allows 1x1 pixel box to be
+		endy = coor.y + 1;									//		drawn at pointer location)
+		drawBox();											// draw 1x1 pixel box
+	}
+
+}, false);
+
+canvas.addEventListener('mouseup', function(){				// clicking up stops drawing a box
+	
+	if(drawing){											// only happens when in a state of drawing
+		drawing = false;
+		if ((Math.abs(startx - endx) > MINBOX) && (Math.abs(starty - endy) > MINBOX)){	// small box won't be added
+			newWorksheet.src = canvas.toDataURL("image/jpeg");	// update canvas background image object
+			var numBoxes = Object.keys(boxes).length + 1;	// get the numer of areas already drawn (box will be this number)
+			boxes[("Area " + numBoxes)] = Box(startx,starty,endx,endy,randomStroke(),numBoxes); // make and store area info
+			addAccordion(boxes[("Area " + numBoxes)]);		// add accordion button for button
+			colorCounter++;									// increase color counter to change color for next stroke
+
+			console.log(newWorksheet.src);
+		}
+	}
+
+}, false);
+
+canvas.addEventListener('mousemove', function(event){
+
+	if(drawing){											// only happens if in a drawing state
+		var coor = getCoor(event);							// get and update end coordinates
+		endx = coor.x;
+		endy = coor.y;
+	}
+
+},false);
+
+submitBtn.addEventListener('click', function(){				// add functionality to button
+
+	sendJSON();												// only send POST request
+
+}, false);
+
+
+/* Funtion declarations */
+function makeDroppable(element){
+
+	var input = document.createElement('input');					// create an input element to accept multiple files
+	input.setAttribute('type', 'file');
+	input.setAttribute('multiple', true);
+	input.style.display = 'none';									// hide the button
+	input.addEventListener('change',function(e){					// add functionality to handle files when files load
+		fileHandler(e);
+	});
+
+	element.appendChild(input);										// add the input element to the element making droppable
+
+	element.addEventListener('dragover', function(e){				// add functionality to when a file is dragged over the element
+		e.preventDefault();											// prevent the default action of the browser
+		e.stopPropagation();
+		element.classList.add('dragover');
+		element.style.borderColor = "lawngreen";					// make border color green 
+	});
+
+	element.addEventListener('dragleave', function(e){				// add functionality to when a dragged file leaves an element
+		e.preventDefault();											// prevent the default action of the browser
+		e.stopPropagation();
+		element.classList.remove('dragover');
+		element.style.borderColor = "white";						// return the border to white
+	});
+
+	element.addEventListener('drop', function(e){					// add functionality to when a file is dropped
+		e.preventDefault();											// prevent the default action of the browser
+		e.stopPropagation();
+		element.classList.remove('dragover');
+		element.style.borderColor = "white";						// return the border to white
+		fileHandler(e);												// handle the files that were dropped
+	});
+
+	element.addEventListener('click', function(){
+		input.value = null;											// on a click inside the droppable element, replicate a click 
+		input.click();												// 		on the input files button created earlier
+	})
+
+}
+
+function fileHandler(event){
+
+	var par = document.getElementById("filesUploaded");				// get the paragraph element that tells user what files 
+																	//		were uploaded
+	var data = event.dataTransfer || event.target;					// cross browser support to get the data that was uploaded
+	var files  = data.files;										// get the list files uploaded
+
+	if (files.length > 0){											// only occurs if files were uploaded
+
+		for (var j = 0; j < files.length; j++){						// go through all files
+
+			var uploadedFile = new Object();						// create an object that records info about the file
+
+			var url = URL.createObjectURL(files[j]);				// turn file into a url
+			var img = new Image();
+			img.src = url;											// create an image object and set its source to the file url
+			uploadedFile["wkstImage"] = img;						// store the image object
+			uploadedFile["fileName"] = files[j].name;				// store the name of the file
+
+			worksheets[("url " + j)] = uploadedFile;				// store whole object in list of worksheets
+
+			if (par.innerHTML == "Files Uploaded: None"){			// logic to change the text of the paragraph
+				par.innerHTML = "Files Uploaded: ";
+			} else {
+				par.innerHTML += ", ";
+			}
+
+			par.innerHTML += files[j].name;
+		}
+	}
+}
+
+function getCoor(event){
+
+	var rect = canvas.getBoundingClientRect();						// get the pixel location of canvas
+	var xcoor, ycoor, offsetX = rect.left, offsetY = rect.top;		// offset is location x and y location of canvas
+	xcoor = Math.floor(event.pageX - offsetX - window.pageXOffset);	// get position of pointer and subtract offsets
+	ycoor = Math.floor(event.pageY - offsetY - window.pageYOffset);
+
+	return {														// return accurate coordinates
+		x: xcoor,
+		y: ycoor
+	};
+
+}
+
+var requestAnimationFrame = window.requestAnimationFrame ||			// allows box drawing to be animated
+							window.mozRequestAnimationFrame ||		// 		multiple for cross browser support
+							window.webkitRequestAnimationFrame ||
+							window.msRequestAnimationFrame;
+
+function drawBox(){
+
+	if (drawing){													// only occurs when in state of drawing
+		ctx.clearRect(0,0,canvas.width,canvas.height);				// clear all pixels in canvas
+		ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);	// draw the most recent background
+		ctx.beginPath();											// begin a drawing path
+		ctx.setLineDash([6]);										// set dash and space length
+		ctx.lineWidth = 1;											// set line width
+		ctx.rect(startx,starty,endx - startx,endy - starty);		// draw a rectangle based on coordinates
+		ctx.strokeStyle = randomStroke();							// get and set the color of the line
+		ctx.closePath();											// close a drawing path
+		ctx.stroke();												// draw the path
+		requestAnimationFrame(drawBox);								// call itself at a speed the browser uses to 
+																	// 		refresh the screen
+	}
+
+}
+
+function randomStroke(){
+	
+	var color;
+	
+	if ((colorCounter > 4)||(colorCounter < 0)){					// if colorCounter is not within 0 and 4
+		colorCounter = 1;											// 		update its value
+	}
+	
+	switch(colorCounter){											// choose color depending on colorCounter
+		case 1:
+			color = "blue";
+			break;
+		case 2:
+			color = "red";
+			break;
+		case 3:
+			color = "limegreen";
+			break;
+		default:
+			color = "black";
+	}
+
+	return color;													// return the color
+
+}
+
+function Box(x1,y1,x2,y2,color,i){							// "class" definition; class is set as a function for 
+															//		cross browser support
 	var box = new Object();
 
-	if(x2 < x1){
-		box.topLx = x2;
+	if(x2 < x1){											// compare coordinates, determine which is left/right
+		box.topLx = x2;										//		or top/bottom, and set accordingly
 		box.bottomRx = x1;
 	} else{
 		box.topLx = x1;
@@ -281,212 +503,25 @@ function Box(x1,y1,x2,y2,color,i){
 		box.bottomRy = y2;
 	}
 
-	box.lineColor = color;
-	box.name = "Box " + i;
-	box.type = "Unkown";
+	box.lineColor = color;									// record stroke color of box
+	box.name = "Box " + i;									// record name of box
+	box.type = "Unkown";									// record type of box
 
-	return {
-		boxInfo: box
-	};
-}
+	return box;
 
-var editButton = document.getElementById("startEditBtn");
-	editButton.addEventListener('click', function(){
-
-		var img = worksheets["url 0"]["imageURL"];
-		newWorksheet.src = img.src;
-
-		ctx.drawImage(worksheets["url 0"]["imageURL"],0,0,canvas.width,canvas.height);
-
-		canvas.style.cursor = "crosshair";
-
-		var parent = document.body;
-		var child = document.getElementById("loading");
-		parent.removeChild(child);
-	})
-
-var requestAnimationFrame = window.requestAnimationFrame ||
-							window.mozRequestAnimationFrame ||
-							window.webkitRequestAnimationFrame ||
-							window.msRequestAnimationFrame;
-
-canvas.addEventListener('mousedown', function(event){
-	
-	if(!drawing){
-		drawing= true;
-		var coor = getCoor(event);
-		startx = coor.x;
-		starty = coor.y;
-		endx = coor.x + 1;
-		endy = coor.y + 1;
-		drawBox();
-	}
-
-}, false);
-
-canvas.addEventListener('mouseup', function(){
-	
-	if(drawing){
-		drawing = false;
-		if ((Math.abs(startx - endx) > MINBOX) && (Math.abs(starty - endy) > MINBOX)){	
-			newDataURL = canvas.toDataURL();
-			newWorksheet.src = newDataURL;
-			numBoxes++;
-			boxes[("Area " + numBoxes)] = Box(startx,starty,endx,endy,randomStroke(),numBoxes);
-			addAccordion(boxes[("Area " + numBoxes)]);
-			i++;
-		}
-	}
-
-}, false);
-
-canvas.addEventListener('mousemove', function(event){
-	if(drawing){
-		var coor = getCoor(event);
-		endx = coor.x;
-		endy = coor.y;
-	}
-},false);
-
-var submitBtn = document.getElementById("submitBtn");
-	submitBtn.onclick = function(){
-		sendJSON();
-	};
-
-function getCoor(event){
-
-	var rect = canvas.getBoundingClientRect();
-	var xcoor, ycoor, offsetX = rect.left, offsetY = rect.top;
-	xcoor = Math.floor(event.pageX - offsetX - window.pageXOffset);
-	ycoor = Math.floor(event.pageY - offsetY - window.pageYOffset);
-
-	return {
-		x: xcoor,
-		y: ycoor
-	};
-}
-
-function drawBox(){
-	if (drawing){
-		ctx.clearRect(0,0,canvas.width,canvas.height);
-		ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
-		ctx.beginPath();
-		ctx.setLineDash([6]);
-		ctx.lineWidth = 1;
-		ctx.rect(startx,starty,endx - startx,endy - starty);
-		ctx.strokeStyle = randomStroke();
-		ctx.closePath();
-		ctx.stroke();
-		requestAnimationFrame(drawBox);
-	}
-}
-
-function randomStroke(){
-	
-	var color;
-	
-	if (i > 4){
-		i = 1;
-	}
-	
-	switch(i){
-		case 1:
-			color = "blue";
-			break;
-		case 2:
-			color = "red";
-			break;
-		case 3:
-			color = "green";
-			break;
-		default:
-			color = "black";
-	}
-
-	return color;
-}
-
-function makeDroppable(element){
-
-	var input = document.createElement('input');
-	input.setAttribute('type', 'file');
-	input.setAttribute('multiple', true);
-	input.style.display = 'none';
-	input.addEventListener('change',function(e){
-		fileHandler(e);
-	});
-
-	element.appendChild(input);
-
-	element.addEventListener('dragover', function(e){
-		e.preventDefault();
-		e.stopPropagation();
-		element.classList.add('dragover');
-		element.style.borderColor = "lawngreen";
-	});
-
-	element.addEventListener('dragleave', function(e){
-		e.preventDefault();
-		e.stopPropagation();
-		element.classList.remove('dragover');
-		element.style.borderColor = "white";
-	});
-
-	element.addEventListener('drop', function(e){
-		e.preventDefault();
-		e.stopPropagation();
-		element.classList.remove('dragover');
-		element.style.borderColor = "white";
-		fileHandler(e);
-	});
-
-	element.addEventListener('click', function(){
-		input.value = null;
-		input.click();
-	})
-
-}
-
-function fileHandler(event){
-
-	var par = document.getElementById("filesUploaded");
-
-	var data = event.dataTransfer || event.target;
-	var files  = data.files;
-
-	if (files.length > 0){
-
-		for (var j = 0; j < files.length; j++){
-
-			var uploadedFile = new Object();
-
-			var url = URL.createObjectURL(files[j]);
-			var img = new Image();
-			img.src = url;
-			uploadedFile["imageURL"] = img;
-			uploadedFile["fileName"] = files[j].name;
-
-			worksheets[("url " + j)] = uploadedFile;
-
-			if (par.innerHTML == "Files Uploaded: None"){
-				par.innerHTML = "Files Uploaded: ";
-			} else {
-				par.innerHTML += ", ";
-			}
-
-			par.innerHTML += files[j].name;
-
-			num++;
-		}
-	}
 }
 
 function resetCanvas(){
-	ctx.clearRect(0,0,canvas.width,canvas.height);
-	ctx.drawImage(worksheets["url 0"]["imageURL"],0,0,canvas.width,canvas.height);
+
+	ctx.clearRect(0,0,canvas.width,canvas.height);					// clear all the pixels in the canvas
+	ctx.drawImage(worksheets["url 0"]["imageURL"],0,0,canvas.width,canvas.height);	// redraw original worksheet
+
 }
 
 function addAccordion(boxObj){
+
+	var numBoxes = Object.keys(boxes).length;					// get the number of areas drawn
+
 	var acc = document.getElementsByClassName('accordion')		// get elements in accordion class
 	var boxButtons = document.getElementById("boxButtons");		// get boxButtons element, where the accordion lives
 
@@ -496,7 +531,7 @@ function addAccordion(boxObj){
 	butt.innerHTML = "Area " + numBoxes;						// assign the text of the button
 	
 	butt.onmouseover = function(){								// allow boxes to be highlighted when  
-																//	the name is hovered over
+																//		the name is hovered over
 		ctx.beginPath();
 		ctx.rect(boxObj.topLx,boxObj.topLy,boxObj.bottomRx - boxObj.topLx,boxObj.bottomRy -  boxObj.topLy);
 		ctx.strokeStyle = boxObj.lineColor;
@@ -506,7 +541,6 @@ function addAccordion(boxObj){
 	}
 
 	butt.onmouseleave = function(){								// get rid of highlight when mouse leaves
-		
 		ctx.clearRect(0,0,canvas.width,canvas.height);
 		ctx.drawImage(newWorksheet,0,0,canvas.width,canvas.height);
 	}
@@ -572,8 +606,7 @@ function deleteBox(number){
 
 	}
 
-	newDataURL = canvas.toDataURL();							// update worksheet image object
-	newWorksheet.src = newDataURL;
+	newWorksheet.src = canvas.toDataURL("image/jpeg");			// update worksheet image object
 
 }
 
@@ -582,17 +615,17 @@ function sendJSON(){
 	var url = "http://ceeodocker-dev-01.uit.tufts.edu:8085/worksheet";// url to send the json to; server url
 
 	var timeStamp;											// get timeStamp
-	if (Date.now){											// cross-browser support stuff
+	if (Date.now){											// cross-browser support logic
 		timeStamp = Date.now();
 	} else {
 		timeStamp = Date.getTime();
 	}
 
-	var teacher = "Teacher";
-	var subject = document.getElementById("subSelect").value;
-	var worksheetTitle = document.getElementById("worksheetTitle").value;
-	var pageNum = "1";
-	var totPage = "1";
+	var teacher = "Teacher";								// teacher name will be defined in the future
+	var subject = document.getElementById("subSelect").value;	// get value of subject input box
+	var worksheetTitle = document.getElementById("worksheetTitle").value;	// get value of worksheet title box
+	var pageNum = "1";										// page number and total number of pages are to be defined
+	var totPage = "1";										//		in the future
 
 	var BoxesArray = Object.keys(boxes);					// get an array of all boxes listed in boxes object
 	var numBoxes = Object.keys(boxes).length;				// get the length of the list
@@ -620,46 +653,64 @@ function sendJSON(){
 		if (!confirm("Worksheet class/subject not set. \nTo submit worksheet without setting title, press OK. Otherwise, press Cancel and update worksheet class/subject.")) {return;}
 	}
 
-	var worksheetData = new Object();
+	/* If made it to this point, being the process of creating an object to send as JSON */ 
+	var worksheetData = new Object();								// create new object
 
-	worksheetData["Teacher"] = teacher;
-	worksheetData["Subject"] = subject;
-	worksheetData["Worksheet Title"] = worksheetTitle;
-	worksheetData["ID"] = worksheetTitle + timeStamp;
-	worksheetData["Page Number"] = pageNum;
-	worksheetData["Total Pages"] = totPage;
+	worksheetData["Teacher"] = teacher;								// set teacher name
+	worksheetData["Subject"] = subject;								// set subject of workksheet
+	worksheetData["Worksheet Title"] = worksheetTitle;				// set worksheet title
+	worksheetData["ID"] = worksheetTitle + timeStamp;				// set id, which is worksheet title + a timestamp
+	worksheetData["Page Number"] = pageNum;							// set page number of worksheet
+	worksheetData["Total Pages"] = totPage;							// set total number pages in worksheet
 
-	var areas = new Object();
-	areas[0] = "QR Code Info";
+	var areas = new Object();										// create object to store multiple areas
+	areas[0] = "QR Code Info";										// first element is set to QR code info
 	for (var i = 1; i <= numBoxes; i++){
 		
-		var thisBox = BoxesArray[i-1];
+		var thisBox = BoxesArray[i-1];								// get the key from the list of keys
 
-		var boxToSend = new Object();
+		var boxToSend = new Object();								// create a new object and store all important info
 		boxToSend["topLx"] = boxes[thisBox].topLx;
 		boxToSend["topLy"] = boxes[thisBox].topLy;
 		boxToSend["bottomRx"] = boxes[thisBox].bottomRx;
 		boxToSend["bottomRy"] = boxes[thisBox].bottomRy;
 		boxToSend["type"] = boxes[thisBox].type;
 
-		areas[i] = boxToSend;		
+		areas[i] = boxToSend;										// store the object in the areas object
 	}
-	worksheetData["Areas"] = areas;
-	worksheetData["Image"] = "Image";
+	worksheetData["Areas"] = areas;									// add areas object to object being sent
+	worksheetData["Image"] = "Image";								// image data to be added in the future
 
 	console.log(worksheetData);
 	console.log("Entering POST request");
 	console.log("This would be a POST");
 
-	/*$.ajax({
+	/*$.ajax({														// ajax method to POST workheet information
 			method: "POST",
-			crossOrigin: true,
+			crossOrigin: true,										// allows cross domain request?...
 			url: url,
-			data: JSON.stringify(worksheetData),
-			success:function(data){
+			contentType: "application/json",						// sending json type
+			data: JSON.stringify(worksheetData),					// convert object and that is the data being sent
+			success:function(data){									// function that reports a successful POST
 				console.log("It worked!");
+				console.log(data);
 			}
 		});*/
+
+
+	/* Testing a decoding of a canvas image data url */ 
+	var imageData = canvas.toDataURL();
+	$.ajax({
+		method: "POST",
+		//crossOrigin: true,
+		url: "imageDecoder.php",
+		contentType: "application/upload",
+		data: imageData,
+		success: function(data){
+			console.log(data);
+		}
+	});
+
 }
 
 </script>
