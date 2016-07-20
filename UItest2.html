@@ -700,10 +700,7 @@ function sendJSON(){
 
 	/* Testing a decoding of a canvas image data url */ 
 	var imageData = canvas.toDataURL();
-	imageData = imageData.substring(22);
-	var decodedData = window.atob(imageData);
-
-	/*$.ajax({
+	$.ajax({
 		method: "POST",
 		url: "imageDecode.asp",
 		contentType: "application/upload",
@@ -711,7 +708,7 @@ function sendJSON(){
 		success: function(data){
 			console.log(data);
 		}
-	});*/
+	});
 }
 
 </script>
