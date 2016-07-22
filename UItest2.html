@@ -324,7 +324,7 @@ canvas.addEventListener('mouseup', function(){				// clicking up stops drawing a
 			addAccordion(boxes[("Area " + numBoxes)]);		// add accordion button for button
 			colorCounter++;									// increase color counter to change color for next stroke
 
-			console.log(newWorksheet.src);
+			//console.log(newWorksheet.src);
 		}
 	}
 
@@ -681,9 +681,17 @@ function sendJSON(){
 	worksheetData["Areas"] = areas;									// add areas object to object being sent
 	worksheetData["Image"] = "Image";								// image data to be added in the future
 
-	console.log(worksheetData);
-	console.log("Entering POST request");
-	console.log("This would be a POST");
+	if(alert("Worksheet Submitted! \n(Theoretically)")){
+		window.location.reload();
+	}
+
+	/*console.log(worksheetData);*/
+
+	/* Trying to open image in new window  
+	var canvasData = canvas.toDataURL("image/jpeg");
+	var win = window.open('about:blank','image from canvas');
+	win.document.write("<img src='" + canvasData + "' alt='from canvas'/>");*/
+
 
 	/*$.ajax({														// ajax method to POST workheet information
 			method: "POST",
@@ -698,17 +706,27 @@ function sendJSON(){
 		});*/
 
 
-	/* Testing a decoding of a canvas image data url */ 
-	var imageData = canvas.toDataURL();
+	/*Testing a decoding of a canvas image data url */
+	/*var imageData = canvas.toDataURL();					// get dataURI/encryption
+	console.log(imageData);
+	imageData = imageData.substr(22);					// remove part of encryption "data:image/jpeg;base64,"
+	console.log(imageData);
+	console.log("Entering POST request");
 	$.ajax({
 		method: "POST",
-		url: "imageDecode.asp",
-		contentType: "application/upload",
+		dataType: "text",
+		url: "localhost:8081/imageDownload",
+		contentType: "text/plain",
 		data: imageData,
 		success: function(data){
 			console.log(data);
+			console.log("POST successful apparently");
+		},
+		error: function(err){
+			console.log("FAILURE");
+			console.log(err);
 		}
-	});
+	});*/
 }
 
 </script>
